@@ -8,9 +8,12 @@ function App () {
   const [ name, setName ] = useState(null)
   const [ imageURL, setImageURL ] = useState('')
 
+  const [loadingMessage, setLoadingMessage ] = useState(null)
+
   const changePokemon = (event) => {
     event.preventDefault();
     if (pokemon.trim() !== "") {
+      setLoadingMessage(true);
       setSearchedPokemon(pokemon);
       setPokemon('');
     }
@@ -34,6 +37,7 @@ function App () {
         return res.json();
       })
       .then(data => {
+        setLoadingMessage(false);
         setName(data.name);
         setImageURL(data.sprites.other['official-artwork'].front_default);
       })
@@ -57,6 +61,7 @@ function App () {
         <button type="submit">Search</button>
     </form>
     <div className='pokeDiv'>
+      { loadingMessage && <p> Loading ... 😴💤</p> }
       <p>{name && name.toUpperCase()}</p>
       {name && <img src={imageURL} alt={name} />}
     </div>
