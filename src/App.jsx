@@ -3,9 +3,9 @@ import { useState, useEffect } from 'react';
 
 function App () {
   const [ pokemon, setPokemon ] = useState('')
-  const [searchedPokemon, setSearchedPokemon] = useState('');
+  const [searchedPokemon, setSearchedPokemon] = useState(null);
 
-  const [ name, setName ] = useState('')
+  const [ name, setName ] = useState(null)
   const [ imageURL, setImageURL ] = useState('')
 
   const changePokemon = (event) => {
@@ -15,36 +15,32 @@ function App () {
       setPokemon('');
     }
   }
-  const handleWrongName = (event) => {
-    event.preventDefault();
-    alert('Pokemon no encontrado');
-  };
-  const getPokemonData = async () => {
-    
-    if (!searchedPokemon) {
-      return ;
-    }
-    try {
-      const result = await fetch(`https://pokeapi.co/api/v2/pokemon/${searchedPokemon}`)
 
-      result.json().then(response => {
-        const name = response.name;
-        const imageURL = response.sprites.other['official-artwork'].front_default;
-        
-        setName(name);
-        setImageURL(imageURL);
-        
-        console.log('Name:', name);
-        console.log('URL:', imageURL);
-      })
-    } catch (error) {
-      console.error("Failed to fetch Pokemon:", error);
-    }
-    
-  }
+  const handleWrongName = () => {
+    alert('Pokémon not found. Please try again.');
+    setName(null);
+    setImageURL('');
+  };
 
   useEffect(() => {
-    getPokemonData()
+    if (searchedPokemon === null) {
+      return;
+    } else {
+      fetch(`https://pokeapi.co/api/v2/pokemon/${searchedPokemon}`)
+      .then(res => {
+        if (!res.ok) {
+          throw new Error('Pokémon not found');
+        }
+        return res.json();
+      })
+      .then(data => {
+        setName(data.name);
+        setImageURL(data.sprites.other['official-artwork'].front_default);
+      })
+      .catch(() => {
+        handleWrongName();
+      });
+    }
   }, [searchedPokemon]);
 
   return(
@@ -60,8 +56,10 @@ function App () {
         />
         <button type="submit">Search</button>
     </form>
-    <p>{name ? name.toUpperCase() : null}</p>
-    <img src={imageURL} alt={name} />
+    <div className='pokeDiv'>
+      <p>{name && name.toUpperCase()}</p>
+      {name && <img src={imageURL} alt={name} />}
+    </div>
   </>
   )
 };
